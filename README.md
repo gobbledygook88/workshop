@@ -1,6 +1,8 @@
 Backend development workshop
 ============================
 
+![Animal Crossing crafting screenshot](https://oyster.ignimgs.com/mediawiki/apis.ign.com/animal-crossing-new-horizons/c/c4/Screen_Shot_2020-02-03_at_2.48.55_PM.png?width=1280)
+
 Aim:
 
 ## 🟢  Objectives 
