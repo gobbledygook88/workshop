@@ -11,3 +11,9 @@ def test_hello_world():
     response = client.get("/")
     assert response.status_code == 200
     assert response.json()['message'] == 'Hello World'
+
+def test_post_request():
+    response = client.post("/game", json = {
+    "playerPlayed": "paper"})
+    assert response.json()["gameId"] == "abc-defg-hijk"
+     
