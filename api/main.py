@@ -24,6 +24,19 @@ class Action(BaseModel):
 app = FastAPI()
 
 
+@app.post("/play")
+async def player_plays(action: Action):
+    server_action = random.choice(list(Gesture))
+
+    return {
+        "gameId": "abc-defg-hijk",
+        "playerPlayed": action.playerPlayed,
+        "serverPlayed": server_action,
+        "result": handle_result(action.playerPlayed, server_action),  # determine win/loss
+        "timestamp": "2021-12-01T10:10:00Z"
+    }
+
+
 def handle_result(action: Gesture, server: Gesture):
     if action == server:
         return Result.draw
@@ -39,16 +52,3 @@ def handle_result(action: Gesture, server: Gesture):
         return Result.win
     if action == Gesture.scissors and server == Gesture.paper:
         return Result.win
-
-
-@app.post("/play")
-async def player_plays(action: Action):
-    server_action = random.choice(list(Gesture))
-
-    return {
-        "gameId": "abc-defg-hijk",
-        "playerPlayed": action.playerPlayed,
-        "serverPlayed": server_action,
-        "result": handle_result(action.playerPlayed, server_action),  # determine win/loss
-        "timestamp": "2021-12-01T10:10:00Z"
-    }
