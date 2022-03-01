@@ -4,10 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flake8 = "*"
+fastapi = {extras = ["all"], version = "*"}
+psycopg2 = "*"
 
 [dev-packages]
 pytest = "*"
+flake8 = "*"
 
 [requires]
 python_version = "3.9"
