@@ -1,12 +1,16 @@
+from http import server
 import random
 from enum import Enum
 
 from uuid import UUID
+import uuid
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 import psycopg2
 
+from models.results_model import Result as ResultModel
+from database.session import get_session
 
 class Gesture(Enum):
     rock = "rock"
@@ -44,12 +48,9 @@ def create_results_no_database():
         "CREATE TABLE IF NOT EXISTS game (id serial PRIMARY KEY, game_name varchar unique, result varchar, server_played varchar, player_played varchar);"
     )
 
-    
-
     cur.execute(
         "INSERT INTO game (game_name, result, server_played, player_played) VALUES (%s, %s, %s, %s) ON CONFLICT (game_name) DO NOTHING",
         ("1604217f-4561-4eab-9ee8-7ca923e5ab51", "won", "scissors", "rock"),
-    
     )
 
     cur.execute(
@@ -73,8 +74,6 @@ def create_results_no_database():
     cur.close()
     conn.close()
 
-
-
     final_historic_results = [
         HistoricResult(
             game_name=result[1],
@@ -96,12 +95,26 @@ async def returns_result():
 @app.post("/play")
 async def player_plays(action: Action):
     server_action = random.choice(list(Gesture))
+    game_name = uuid.uuid4()
+    result = handle_result(action.playerPlayed, server_action)
+    player_played = action.playerPlayed
+
+    result_from_play = ResultModel(
+        game_name=game_name,
+        result=result.value,
+        server_played=server_action.value,
+        player_played=player_played.value,
+    )
+
+    session = next(get_session())
+    session.add(result_from_play)
+    session.commit()
 
     return {
-        "gameId": "abc-defg-hijk",
-        "playerPlayed": action.playerPlayed,
+        "gameId": game_name,
+        "playerPlayed": player_played,
         "serverPlayed": server_action,
-        "result": handle_result(action.playerPlayed, server_action),
+        "result": result,
         "timestamp": "2021-12-01T10:10:00Z",
     }
 

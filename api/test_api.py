@@ -2,17 +2,29 @@ from fastapi.testclient import TestClient
 from main import app, Gesture, Result, create_results_no_database
 import pytest
 
+from models.results_model import Result as ResultModel
+from database.session import get_session
+
+
 client = TestClient(app)
+
+# replace pyscopg
+# receive data from post and insert into our tables
+# and upsert on conflict
+
+# get route is grabbing data from the db
 
 
 class TestRockPaperScissors:
     def test_player_plays(self):
         response = client.post("/play", json={"playerPlayed": "paper"})
-        print("response", response)
         assert response.status_code == 200
-        assert response.json()["gameId"] == "abc-defg-hijk"
+        assert response.json()["gameId"] is not None
         assert response.json()["playerPlayed"] == "paper"
         assert response.json()["timestamp"] == "2021-12-01T10:10:00Z"
+
+        session = next(get_session())
+        assert session.query(ResultModel).count() == 1
 
     def test_server_returns_allowed_result(self):
         response = client.post("/play", json={"playerPlayed": "paper"})
