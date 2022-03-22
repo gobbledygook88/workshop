@@ -5,6 +5,7 @@ from uuid import UUID
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+import psycopg2
 
 
 class Gesture(Enum):
@@ -34,42 +35,62 @@ app = FastAPI()
 
 
 def create_results_no_database():
-    RESULTS = []
-    book_1 = HistoricResult(
-        game_name="1604217f-4561-4eab-9ee8-7ca923e5ab51",
-        player_played="Title One",
-        server_played="Author One",
-        result="Desc One",
+
+    conn = psycopg2.connect(
+        "dbname=postgres user=postgres host=0.0.0.0 password=postgres"
     )
-    book_2 = HistoricResult(
-        game_name="1604217f-4561-4eab-9ee8-7ca923e5ab52",
-        player_played="Title Two",
-        server_played="Author Two",
-        result="Desc Two",
+    cur = conn.cursor()
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS game (id serial PRIMARY KEY, game_name varchar unique, result varchar, server_played varchar, player_played varchar);"
     )
-    book_3 = HistoricResult(
-        game_name="1604217f-4561-4eab-9ee8-7ca923e5ab53",
-        player_played="Title Three",
-        server_played="Author Three",
-        result="Desc Three",
+
+    
+
+    cur.execute(
+        "INSERT INTO game (game_name, result, server_played, player_played) VALUES (%s, %s, %s, %s) ON CONFLICT (game_name) DO NOTHING",
+        ("1604217f-4561-4eab-9ee8-7ca923e5ab51", "won", "scissors", "rock"),
+    
     )
-    book_4 = HistoricResult(
-        game_name="1604217f-4561-4eab-9ee8-7ca923e5ab54",
-        player_played="Title Four",
-        server_played="Author Four",
-        result="Desc Four",
+
+    cur.execute(
+        "INSERT INTO game (game_name, result, server_played, player_played) VALUES (%s, %s, %s, %s) ON CONFLICT (game_name) DO NOTHING",
+        ("1604217f-4561-4eab-9ee8-7ca923e5ab52", "won", "scissors", "rock"),
     )
-    RESULTS.append(book_1)
-    RESULTS.append(book_2)
-    RESULTS.append(book_3)
-    RESULTS.append(book_4)
-    return RESULTS
+
+    cur.execute(
+        "INSERT INTO game (game_name, result, server_played, player_played) VALUES (%s, %s, %s, %s) ON CONFLICT (game_name) DO NOTHING",
+        ("1604217f-4561-4eab-9ee8-7ca923e5ab53", "won", "scissors", "rock"),
+    )
+
+    cur.execute(
+        "INSERT INTO game (game_name, result, server_played, player_played) VALUES (%s, %s, %s, %s) ON CONFLICT (game_name) DO NOTHING",
+        ("1604217f-4561-4eab-9ee8-7ca923e5ab54", "won", "scissors", "rock"),
+    )
+
+    cur.execute("SELECT * FROM game")
+    historic_results = cur.fetchall()
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+
+    final_historic_results = [
+        HistoricResult(
+            game_name=result[1],
+            result=result[2],
+            server_played=result[3],
+            player_played=result[4],
+        )
+        for result in historic_results
+    ]
+
+    return final_historic_results
 
 
 @app.get("/")
 async def returns_result():
     return create_results_no_database()
-     
 
 
 @app.post("/play")

@@ -51,7 +51,7 @@ class TestRockPaperScissors:
 
     def test_response_returns_results(self):
         response = client.get("/")
-        assert len(response.json()) == 4
+        assert len(response.json()) > 3
 
         list_of_game_names = [result["game_name"] for result in response.json()]
         set_of_game_names = set(list_of_game_names)
